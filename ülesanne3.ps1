@@ -1,7 +1,6 @@
 $file = "C:\users\Administrator\skriptimine\adusers.csv"
-$users = Import-Csv $file -Encoding Default -Delimiter ";"
+$users = Import-Csv $file -Encoding UTF8 -Delimiter ";"
 
-# Funktsioon Translit
 function Translit {
     param(
         [string] $inputstring
@@ -38,7 +37,7 @@ foreach ($user in $users) {
 
     $displayname = $user.FirstName + " " + $user.LastName
 
-    # Kontrolli, kas UPN on unikaalne
+
     $isUniqueUPN = !(Get-ADUser -Filter {UserPrincipalName -eq $upname} -ErrorAction SilentlyContinue)
 
     if ($isUniqueUPN) {
