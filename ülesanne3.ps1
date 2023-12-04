@@ -1,51 +1,57 @@
 $file = "C:\users\Administrator\skriptimine\adusers.csv"
-
 $users = Import-Csv $file -Encoding Default -Delimiter ";"
 
-foreach ($user in $users){
-    $username = $user.FirstName + "." $user.LastName
-    $username = $username.ToLower()
-    $username = Translit($username)
-    
-    $upname = $username + "@sv-kool.local"
-
-    $displayname = $user.FirstName + " " + $user.LastName
-    New-ADUser -Name $username
-        -DispayName $displayname
-        -GivenName $user.FirstName
-        -Surname $user.LastName
-        -Departmemt $user.Department
-        -Title $user.Role
-        -userPrincipalName $upname
-        -AccountPassword (ConvertTo-SecureString $user.Password -AsPlainText -force) -Enabled $true
-    
-
-}
-
+# Funktsioon Translit
 function Translit {
-
     param(
         [string] $inputstring
     )
 
-        $Translit = @{
-        [char] 'ä' = "a"
-        [char] 'ö' = "o"
-        [char] 'ü' = "u"
-        [char] 'õ' = "o"
+    $Translit = @{
+        [char]'ä' = "a"
+        [char]'ö' = "o"
+        [char]'ü' = "u"
+        [char]'õ' = "o"
         }  
 
-    $outputspring=""
+    $outputString =""
 
-    foreach ($character in $inputCharacter = $inputString.ToCharaArray())
-    {
+    foreach ($character in $inputstring.ToCharArray()) {
+        if ($Translit[$character] -ne $null) {
+            
+            $outputString += $Translit[$character]
+        } else {
+           
+            $outputString += $character
+        }
+    }
 
-        if ($Translit[$character] -cne $Null){
+    Write-Output $outputString
+}
 
-        $outputString += $Translit[$character]
+foreach ($user in $users) {
+    $username = $user.FirstName + "." + $user.LastName
+    $username = $username.ToLower()
+    $username = Translit $username
+
+    $upname = $username + "@sv-kool.local"
+
+    $displayname = $user.FirstName + " " + $user.LastName
+
+    # Kontrolli, kas UPN on unikaalne
+    $isUniqueUPN = !(Get-ADUser -Filter {UserPrincipalName -eq $upname} -ErrorAction SilentlyContinue)
+
+    if ($isUniqueUPN) {
+        New-ADUser -Name $username `
+            -DisplayName $displayname `
+            -GivenName $user.FirstName `
+            -Surname $user.LastName `
+            -Department $user.Department `
+            -Title $user.Role `
+            -UserPrincipalName $upname `
+            -AccountPassword (ConvertTo-SecureString $user.Password -AsPlainText -Force) -Enabled $true
+        Write-Host "Kasutaja '$username' loodud."
     } else {
-        
-        $outputString += $character
+        Write-Host "User $upname already exists - can not add this users"
     }
 }
-write-outout $outputString
