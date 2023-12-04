@@ -49,7 +49,7 @@ foreach ($user in $users) {
             -Title $user.Role `
             -UserPrincipalName $upname `
             -AccountPassword (ConvertTo-SecureString $user.Password -AsPlainText -Force) -Enabled $true
-        Write-Host "Kasutaja '$username' loodud."
+        Write-Host "New user $username added succesfully"
     } else {
         Write-Host "User $upname already exists - can not add this users"
     }
